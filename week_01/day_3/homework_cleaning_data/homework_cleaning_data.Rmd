@@ -1,0 +1,68 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+```{r}
+library(tidyverse)
+library(CodeClanData)
+library(janitor)
+```
+
+```{r}
+Kaggle <- read_csv("data/movies.csv")
+Kaggle
+```
+
+##Question 2
+
+```{r}
+movies_selected <- Kaggle%>%
+  select(title, runtime, budget)
+  
+```
+
+## Question 3
+
+```{r}
+  colSums(is.na(movies_selected))
+```
+
+## Question 4
+
+```{r}
+movies_runtime <- movies_selected%>%
+  mutate(runtime = na_if(runtime, 0))
+  
+movies_runtime %>%
+  summarise(count = sum(is.na(runtime)))
+
+```
+
+## Question 5
+
+```{r}
+movies_imputed <- movies_runtime %>%
+  mutate(runtime = coalesce(runtime, median(runtime, na.rm = T)))
+
+movies_imputed %>%
+  summarise(count = sum(is.na(runtime)))
+```
+
+## Question 6
+
+```{r}
+movies_imputed %>%
+  slice_min(runtime, n = 10)
+movies_imputed %>%
+slice_max(runtime, n = 10)
+
+```
+
+## Question 7
+
+```{r}
+movies_imputed %>%
+  mutate(
+    budget = if_else(budget < 100, median(budget, na.rm = T), budget))
+```
+
