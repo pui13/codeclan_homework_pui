@@ -21,6 +21,13 @@ glimpse(books)
 sum(is.na(books))
 ```
 
+```{r}
+books <- books %>% 
+  janitor::clean_names() %>% 
+  drop_na()
+```
+
+
 #appearances on list
 ```{r}
 appearances <- books %>%
@@ -37,6 +44,7 @@ books %>%
   arrange(desc(author_average_rating))
   
 ```
+
 # Books diffenrence compared to average rating
 ```{r}
 books %>% 

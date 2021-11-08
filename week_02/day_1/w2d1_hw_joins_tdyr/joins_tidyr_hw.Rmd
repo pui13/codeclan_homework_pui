@@ -1,0 +1,71 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+```
+
+```{r}
+card_base <- read_csv("data/CardBase.csv")
+customer_base <- read_csv("data/CustomerBase.csv")
+fraud_base <- read_csv("data/FraudBase.csv")
+transaction_base <- read_csv("data/TransactionBase.csv")
+```
+
+
+#Question 1.1
+```{r}
+card_base <- janitor::clean_names(card_base)
+customer_base <- janitor::clean_names(customer_base)
+fraud_base <- janitor::clean_names(fraud_base)
+transaction_base <- janitor::clean_names(transaction_base)
+```
+
+
+# Question 1.2
+#Join the data containing card details and customer details by customer id, so that all records of card details and any matching records in customer details are kept. Before you run the code, think about how many rows you expect to see after joining.
+
+```{r}
+left_join(card_base, customer_base, by = "cust_id")
+```
+
+
+#Question 1.3
+#Join the data containing fraud details with transaction details so all rows of both tables are kept. What does #the resulting row number tell you?
+
+```{r}
+full_join(fraud_base, transaction_base)
+```
+
+# Question 4
+#Join the data containing card details with transaction details so rows from the first which have matching ones in the second are returned, but only return rows in the first table once.
+
+```{r}
+semi_join( card_base, transaction_base, by = c("card_number" = "credit_card_id"))
+```
+
+# Question 5
+
+```{r}
+hat_observations <- read_csv("data/hat_observations.csv")
+
+hat_separate <- hat_observations %>%
+separate(
+  observation, c("hat_colour", "hat_type"), sep = ","
+  )
+```
+
+# Question 6
+
+```{r}
+hat_separate%>%
+  unite(date, c("day", "month", "year"), sep = "/") %>%
+  filter(hat_type %in% "beret") %>%
+  slice_max(1)
+```
+
+
+
+
