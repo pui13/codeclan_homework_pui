@@ -1,0 +1,52 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(dplyr)
+```
+
+```{r}
+books <- read_csv("data/books.csv")
+```
+
+```{r}
+dim(books)
+glimpse(books)
+```
+
+```{r}
+sum(is.na(books))
+```
+
+#appearances on list
+```{r}
+appearances <- books %>%
+  count(authors, sort = T) %>%
+  rename( appearances_on_list = n )
+appearances
+```
+# Highest rated author
+
+```{r}
+books %>%
+  group_by(authors) %>%
+  summarise(author_average_rating = mean(average_rating)) %>%
+  arrange(desc(author_average_rating))
+  
+```
+# Books diffenrence compared to average rating
+```{r}
+books %>% 
+  mutate(
+    all_avg_rating = mean(average_rating),
+    difference_from_avg = average_rating - all_avg_rating
+    ) %>%
+  select(title, difference_from_avg)
+```
+
+
+
+

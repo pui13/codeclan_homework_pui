@@ -16,7 +16,7 @@ Kaggle
 ##Question 2
 
 ```{r}
-movies_selected <- Kaggle%>%
+movies_selected <- Kaggle %>%
   select(title, runtime, budget)
   
 ```
@@ -30,7 +30,7 @@ movies_selected <- Kaggle%>%
 ## Question 4
 
 ```{r}
-movies_runtime <- movies_selected%>%
+movies_runtime <- movies_selected %>%
   mutate(runtime = na_if(runtime, 0))
   
 movies_runtime %>%
@@ -61,8 +61,7 @@ slice_max(runtime, n = 10)
 ## Question 7
 
 ```{r}
-movies_imputed %>%
-  mutate(
-    budget = if_else(budget < 100, median(budget, na.rm = T), budget))
+movies_imputed <- movies_imputed %>%
+  mutate(budget = if_else(budget < 100, median(budget), budget))
 ```
 
