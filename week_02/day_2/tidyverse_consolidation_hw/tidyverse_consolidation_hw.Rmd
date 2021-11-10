@@ -1,0 +1,72 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+#Quesion 1.
+#Load the code_clan_tweets.csv data. Find the number of rows, columns, and list all the variable names.
+```{r}
+library(tidyverse)
+code_clan_tweets <- read_csv("data/code_clan_tweets.csv")
+```
+
+```{r}
+dim(code_clan_tweets)
+
+names(code_clan_tweets)
+```
+
+#Question 2.
+#Find the total number of favourites (stored in favorite_count) that CodeClan tweets have got. Don’t add a tweet’s favorite_count to the total when the tweet was quoted (see the is_quote variable)
+
+
+```{r}
+code_clan_tweets%>%
+  filter(is_quote == "FALSE")%>%
+  summarise(favourites = sum(favorite_count))
+
+
+
+```
+
+
+#Question 3.
+#Summarise the mean number of retweets (retweet_count), split by the type of platform that was used to tweet (source). Again, omit quoted tweets from the mean.
+
+
+```{r}
+code_clan_tweets%>%
+  filter(is_quote == "FALSE")%>%
+  group_by(source)%>%
+  summarise(avg_retweets = mean(retweet_count))
+```
+
+#Question 4.
+#Count the total number of likes (i.e. total of favorite_count), split by media type, and arrange them from most likes to least. Assume that any tweets without a listed media type are of type “text”.
+
+```{r}
+code_clan_tweets%>%
+  mutate(media_type = coalesce(media_type, "text")) %>%
+  group_by(media_type) %>%
+  summarise(likes = sum(favorite_count))
+```
+
+#Question 5.
+#Find the mean number of characters that a CodeClan tweet contains. You can either find a way to count the text in the text variable, or use the variable display_text_width which contains a count. Checking both would be a good idea if possible to see if they match (but it’s not essential).
+
+```{r}
+code_clan_tweets %>%
+  summarise(avg_tweet_characters = mean(display_text_width))
+```
+
+
+#Question 6.
+#The code_clan_info.csv data file contains status_url along with other info. Load this in, and join it to the code_clan_tweets tibble, so that you have a status_url for each tweet. Decide which variable to join the tibbles on.
+
+```{r}
+code_clan_info <- read_csv("data/code_clan_info.csv")
+
+left_join(code_clan_tweets,code_clan_info)
+```
+
