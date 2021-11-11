@@ -67,6 +67,20 @@ code_clan_tweets %>%
 ```{r}
 code_clan_info <- read_csv("data/code_clan_info.csv")
 
-left_join(code_clan_tweets,code_clan_info)
+codeclan_all_data <- left_join(code_clan_tweets,code_clan_info, by = c("tweet_id"))
+
+```
+
+#Question 7. From your new joined data, create a new tibble codeclan_hashtags containing only the tweet_id and convert the hashtags into lowercase for analysis. Keep only those tweets with hashtags.
+
+```{r}
+# 7 : create a variable which has all the hashtags in lowercase for analysis
+codeclan_hashtags <- codeclan_all%>% 
+  select(tweet_id, hashtags) %>%
+  mutate(lowcase_hashtag = str_to_lower(hashtags)) %>%
+  select(-hashtags) %>%
+  drop_na(lowcase_hashtag)
+
+codeclan_hashtags
 ```
 
