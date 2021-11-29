@@ -1,0 +1,146 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(tidyverse)
+library(CodeClanData)
+library(scales)
+col_scheme <- c("#E89FE9", "#50434F", "#B6A7B5", "#F9A472", "#BD7040")
+
+```
+
+
+Adding appropriate labels
+Changing the scales and coordinates when appropriate.
+Applying a unified theme, which is described below:
+Graphs should have white backgrounds, and use colour sparingly.
+There should be faint grid lines.
+Font sizes should be ~12pt although titles should be slightly larger and axis labels can be slightly smaller.
+All plots should use colours from the following company colour scheme.
+```{r}
+homework_theme <- function() {
+  theme(
+    panel.background = element_rect(fill = "white"),
+    panel.border = element_rect(color = "black", size = 0.5, fill = NA),
+    panel.grid = element_line(colour = "grey", size = 0.2),
+    # modify text, axis and colour 4) and 5)
+    axis.text = element_text(size = 10),
+    axis.title = element_text(size = 14),
+    title = element_text(size = 16)
+  )
+}
+```
+
+
+```{r}
+qb_revenue_breakdown
+
+```
+
+# MVP part 1
+
+## Question 1.
+Take the data in the dataset qb_revenue_breakdown and make a stacked bar chart showing the sources of revenue across the two years in the dataset.
+
+```{r}
+ggplot(qb_revenue_breakdown, aes(x = Year, y = Revenue, fill = Product)) +
+  geom_col() +
+  scale_y_continuous(labels = comma) +
+  ggtitle("Sources of Revenue") +
+  scale_fill_manual(values = col_scheme) +
+  homework_theme()
+  
+```
+
+## Question 2.
+Make a line chart showing monthly sales of the “flagship product” - the ‘KwikBit Unit 1’ - over the last year. This data is inside qb_monthly_sales, but you will need to use filter() or subset() (base R).
+
+
+```{r}
+qb_monthly_sales %>%
+  filter(Cashflow == "Kwikbit Unit 1 Sales") %>%
+  ggplot( aes(x = Date, y = Amount)) +
+  geom_line() +
+  labs ( title = "Kwikbit Unit 1 Sales") +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b%y") +
+  homework_theme()
+
+```
+
+Question 3.
+Make a line chart showing monthly revenue and costs over the last year. This data is also in qb_monthly_sales.
+
+```{r}
+qb_monthly_sales %>%
+  filter ( Cashflow != "Kwikbit Unit 1 Sales") %>%
+  ggplot(aes(x = Date, y = Amount, colour = Cashflow)) +
+  geom_line() +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b%y") +
+  scale_colour_manual(values = col_scheme) +
+  scale_y_continuous(labels = comma) +
+  homework_theme() +
+  ggtitle("Revenue and Cost")
+```
+
+Question 4.
+Show annual sales of personal fitness trackers over the last 5 years broken down by company as a ribbon plot (use geom_area). This data is in qb_competitors.
+
+```{r}
+qb_competitors
+```
+
+```{r}
+qb_competitors %>%
+  mutate(revenue_thousands = Revenue / 1000) %>%
+ggplot(aes( x = Year, y = revenue_thousands, fill = Company)) +
+  geom_area() +
+  ylab ("Revenue (000's)") +
+  labs (title = "Competitor's Sales")+
+  scale_y_continuous(labels = comma) +
+  scale_fill_manual(values = col_scheme) +
+  homework_theme()
+```
+
+
+Question 5.
+Now show the sales from the four competitors as a line graph. Include an extra layer that shows the data points used to make the lines.
+
+```{r}
+qb_competitors %>%
+  mutate(revenue_thousands = Revenue / 1000) %>%
+ggplot(aes( x = Year, y = revenue_thousands, colour = Company)) +
+  geom_line() +
+  geom_point() +
+  ylab ("Revenue (000's)") +
+  labs (title = "Competitor's Sales") +
+  scale_y_continuous(labels = comma) +
+  scale_colour_manual(values = col_scheme) +
+  homework_theme()
+  
+```
+
+
+Question 6.
+Now the company wants to compare the number of steps that their device counts vs. their competitors. Make a line graph of the number of steps throughout time, and use faceting to compare between companies and people. The data for this is in qb_device_data.
+
+```{r}
+qb_device_data %>%
+  mutate(hours_total = mins / 60 + hours) %>%
+  #mutate(`hrs:mins` = paste0(hours, ":", mins)) %>%#,
+         #`hrs:mins` = strptime(`hrs:mins`, format = "%H:%M"))
+  ggplot(aes(x = hours_total, y = counts, colour = device)) +
+  geom_line(show.legend = F) +
+  facet_grid(id ~ device, scales = "free_y") +
+  xlab("time(hours)") +
+  ylab("step count") +
+  scale_y_continuous(labels = comma) +
+  ggtitle("Step Count vs Competitor's Device")+
+  scale_colour_manual(values = col_scheme) +
+  homework_theme()
+```
+
+
+
