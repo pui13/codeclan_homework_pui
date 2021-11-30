@@ -26,7 +26,6 @@ homework_theme <- function() {
     panel.background = element_rect(fill = "white"),
     panel.border = element_rect(color = "black", size = 0.5, fill = NA),
     panel.grid = element_line(colour = "grey", size = 0.2),
-    # modify text, axis and colour 4) and 5)
     axis.text = element_text(size = 10),
     axis.title = element_text(size = 14),
     title = element_text(size = 16)
