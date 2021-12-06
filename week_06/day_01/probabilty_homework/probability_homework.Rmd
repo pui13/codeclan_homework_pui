@@ -1,0 +1,142 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(prob)
+library(gtools)
+library(tidyverse)
+
+titanic <- read_csv("data/titanic.csv")
+```
+
+# MVP
+
+## 1.1 The Titanic
+
+Calculate the conditional probabilities prob(survived∣crew) and prob(survived∣passenger) to settle this dispute
+```{r}
+unique(titanic$class)
+
+titanic <- titanic %>%
+  mutate(crew = if_else(class %in% c("victualling crew",
+                                     "restaurant staff",
+                                     "deck crew",
+                                     "engineering crew"),
+                        TRUE, FALSE))
+```
+
+```{r}
+prob_crew_survived <- titanic %>%
+  filter(crew == T) %>%
+  summarise(prob = sum(survived == "yes")/n())
+
+prob_crew_survived
+```
+
+```{r}
+prob_passenger_survived <- titanic %>%
+  filter(crew == F) %>%
+  summarise(prob = sum(survived == "yes")/n())
+
+prob_passenger_survived
+```
+
+## 1.2 Probability Consolidation Questions
+
+### Question 1.
+If I roll a six-sided dice once, what is the probability of getting a number less than 5?
+
+```{r}
+one_dice_roll <- rolldie(1)
+
+prob_less_than_five <- one_dice_roll %>%
+  filter(X1 < 5) %>%
+  summarise(prob = n()/ nrow(one_dice_roll))
+
+prob_less_than_five
+```
+### Question 2.
+How many outcomes are there in the sample space of an experiment in which we toss three dice?
+
+
+```{r}
+three_dice <- rolldie(3)
+three_dice
+```
+
+## Question 3.
+In an experiment where we roll four dice:
+
+### how many outcomes are in the event where the total of the four dice equals 5, 6 or 7)?
+
+```{r}
+four_dice <- rolldie(4) %>%
+  mutate(total = rowSums(.))
+
+five_six_seven <- four_dice %>%
+  filter(total %in% c("5", "6", "7")) %>%
+  summarise(n())
+five_six_seven
+```
+### what is the probability of this event?
+
+```{r}
+prob_five_six_seven <- five_six_seven / nrow(four_dice)
+prob_five_six_seven
+```
+### what assumptions do we apply in answering part ii?
+
+It's a permutation rather than combination
+
+## Question 4.
+Five chairs are placed in a row in a room, along with five people of differing height. The people sit down randomly on the chairs. What is the probability that they sit in order of decreasing height, left to right?
+
+```{r}
+people <- c("A", "B", "C", "D", "E")
+
+seat <- as_tibble(permutations(n = 5,
+                               r = 5, 
+                               v = people,
+                               repeats.allowed = FALSE))
+
+prob_height_order <- 1/ nrow(seat)
+
+prob_height_order
+```
+
+## Question 5.
+I roll six dice:
+
+what is the probability I see the numbers 6, 5, 4, 3, 2 and 1 in order on the dice, left to right?
+what is the probability I see one each of the numbers 6, 5, 4, 3, 2 and 1 on the dice regardless of order?
+
+```{r}
+six_dice <- rolldie(6)
+
+prob_six_dice_ordered <- 1/nrow(six_dice)
+prob_six_dice_ordered
+```
+
+```{r}
+prob_six_dice_unordered <- six_dice %>%
+  filter(isin(six_dice, c(1, 2, 3, 4, 5, 6), ordered = F)) %>%
+  summarise(prob = n()/nrow(six_dice))
+
+prob_six_dice_unordered
+  
+```
+
+
+
+```{r}
+cards <- cards()
+
+prob_spade_given_black <- cards %>%
+  filter(suit %in% c("Spade", "Club")) %>%
+  summarise(prob = sum(suit == "Spade")/n())
+
+prob_spade_given_black
+```
+
