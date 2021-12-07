@@ -24,7 +24,8 @@ titanic <- titanic %>%
                                      "restaurant staff",
                                      "deck crew",
                                      "engineering crew"),
-                        TRUE, FALSE))
+                        TRUE,
+                        FALSE))
 ```
 
 ```{r}
@@ -139,4 +140,6 @@ prob_spade_given_black <- cards %>%
 
 prob_spade_given_black
 ```
+
+
 

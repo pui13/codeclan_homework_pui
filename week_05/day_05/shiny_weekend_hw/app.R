@@ -41,21 +41,29 @@ ui <- fluidPage(
                )
         ),
         column(3,
+               radioButtons("sort_input",
+                            "Sort by",
+                            choices = c("Critic Score" = "critic_score",
+                                           "User Score" = "user_score")
+               )
+        ),
+        column(3,
                br(), 
               actionButton("go",
                             "Genereate Table"
               )
         )
       ),
-      h5("Sort By :"),
-      tabsetPanel(
-        tabPanel("Critic Score",
-                dataTableOutput("critic_score")
-        ),
-        tabPanel("User Score",
-                 dataTableOutput("user_score")
-        )
-      )
+      dataTableOutput("user_score")
+      # h5("Sort By :"),
+      # tabsetPanel(
+      #   tabPanel("Critic Score",
+      #           dataTableOutput("critic_score")
+      #   ),
+      #   tabPanel("User Score",
+      #            dataTableOutput("user_score")
+      #   )
+      # )
     ),
     tabPanel(
       "Score Distribution",
@@ -87,7 +95,7 @@ server <- function(input, output, session) {
   
   output$user_score <- renderDataTable({
     filtered_data() %>%
-      arrange(desc(user_score))
+      arrange(desc(input$sort_input))
     })
   output$critic_score <- renderDataTable({
     filtered_data() %>%
