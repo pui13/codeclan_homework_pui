@@ -1,0 +1,219 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# MVP
+
+## 1.1 Hypothesis testing - practical
+
+```{r}
+library(tidyverse)
+library(infer)
+msleep <- msleep
+```
+
+### Question 1.
+Explore the dataset and familiarise yourself with it
+
+```{r}
+glimpse(msleep)
+```
+
+### Question 2.
+Jabberwockies sleep for around 7 hours a night, on average. Perform an appropriate statistical test to determine whether the mean sleep_total in the sampled population of animal types differs from the typical value for jabberwockies.
+
+α=0.05
+
+H0: μsleep_total=7
+Ha: μsleep_total≠7
+```{r}
+observed_stat <- msleep %>%
+  summarise(mean_sleep_total = mean(sleep_total))
+
+observed_stat
+```
+```{r}
+null_distribution <- msleep %>%
+  specify(response = sleep_total) %>%
+  hypothesise(null = "point", mu = 7) %>%
+  generate( reps = 10000, type = "bootstrap") %>%
+  calculate(stat = "mean")
+
+null_distribution %>%
+  visualise(bins = 30) +
+  shade_p_value(obs_stat = observed_stat$mean_sleep_total,
+                direction = "both")
+```
+```{r}
+p_value <- null_distribution %>%
+  get_p_value(obs_stat = observed_stat$mean_sleep_total,
+              direction = "both")
+
+p_value
+```
+Here the p-value is 0, so H0 is rejected in favour of Ha. The sampled mean sleep of 10.43 hours is significantly dirrent from Jabberwockies 7 hours.
+
+
+### Question 3.
+Perform an appropriate statistical test to determine whether omnivores sleep for significantly longer than herbivores, on average.
+
+α=0.05
+H0: μmean_sleep(omni) − μmean_sleep(herbi) = 0
+Ha: μmean_sleep(onni) − μmean_sleep(herbi) > 0
+
+```{r}
+omni_herb <- msleep %>%
+  filter(vore %in% c("omni", "herbi"))
+
+omni_herb %>%
+  group_by(vore) %>%
+  summarise(n = n())
+```
+```{r}
+omni_herb %>%
+  ggplot(aes(vore, sleep_total)) +
+  geom_boxplot()
+```
+
+```{r}
+null_distribution <- omni_herb %>%
+  specify(sleep_total ~ vore) %>%
+  hypothesise(null = "independence") %>%
+  generate(reps = 10000,
+           type = "permute") %>%
+  calculate(stat = "diff in means",
+            order = c("omni", "herbi"))
+
+head(null_distribution)
+```
+```{r}
+observed_stat <- omni_herb %>%
+  specify(sleep_total ~ vore) %>%
+  calculate(stat = "diff in means",
+            order = c("omni", "herbi"))
+
+observed_stat
+```
+```{r}
+null_distribution %>%
+  visualise() +
+  shade_p_value(obs_stat = observed_stat,
+                direction = "greater")
+```
+```{r}
+p_value <- null_distribution %>%
+  get_p_value(obs_stat = observed_stat,
+              direction = "greater")
+
+p_value
+```
+
+The p value is greater than α=0.05, so we fail to reject H0. There is no significant evidence that omnivores sleep for significantly longer than herbivores
+
+### Question 4.
+Perform an appropriate statistical test to determine whether the proportion of domesticated animal types in the population of animal types is greater than 5%.
+
+α=0.05
+H0: πdomesticated = 0.05
+Ha: πdomesticated > 0.05
+
+```{r}
+domesticated <- msleep %>%
+  mutate(is_domesticated = ifelse(conservation == "domesticated",
+                                  "domesticated",
+                                  "not domesticated"))
+
+domesticated %>%
+  group_by(is_domesticated) %>%
+  filter(is_domesticated == "domesticated") %>%
+  summarise(prop = n()/ nrow(domesticated))
+```
+
+```{r}
+null_distribution <- domesticated %>%
+  specify(response = is_domesticated,
+          success = "domesticated") %>%
+  hypothesise(null = "point", p = 0.05) %>%
+  generate(reps = 10000, type = "simulate") %>%
+  calculate(stat = "prop")
+
+head(null_distribution)
+```
+
+```{r}
+null_distribution %>%
+  visualise(bins = 30)
+```
+
+```{r}
+observed_stat <- domesticated %>%
+  specify(response = is_domesticated,
+          success = "domesticated") %>%
+  calculate(stat = "prop")
+
+observed_stat
+```
+
+```{r}
+null_distribution %>%
+  visualise(bins = 30) +
+  shade_p_value(obs_stat = observed_stat, direction = "greater")
+```
+
+```{r}
+null_distribution %>%
+  get_p_value(obs_stat = observed_stat,
+              direction = "greater")
+```
+Here, the p-value is less than our significance level of 0.05 so we reject H0 in favour of Ha.
+
+
+## 1.2 Hypothesis testing - Defining the Hypothesis
+
+### Question 1.
+You work for an independent coffee shop. The boss tells you that she thinks that around 40% of people in the town (population 30,000) know of the coffee shop, but you are skeptical of the estimate. You conduct a random survey of 200 people in the town, asking if respondents are aware of your coffee shop. You want to use the sample to test the hypothesis that 40% or more of the town’s population have heard of the coffee shop.
+
+
+* One-sample proportion
+* H0: πknow_coffee_shop = 0.4, proportion of people who have heard of the coffee shop is equal 40%
+  Ha: πknow_coffee_shop > 0.4, proportion of people who have heard of the coffee shop is greater than 40%
+* Simulation
+
+### Question 2.
+
+A/B test on banner position
+
+* Two proportion - independent samples
+* H0: πb_ctr − πa_ctr = 0, proportion of ctr from top banner minus the proportion of ctr from the right banner is eqaul to 0
+  Ha: πb_ctr − πa_ctr > 0, proportion of ctr from top banner minus the proportion of ctr from the right banner is greater than 0
+* Permutation
+
+### Question 3.
+
+Car part
+
+* One sample mean
+* H0: μaverage_width = 145, the mean average width of the car part is equal to 145 
+  Ha: μaverage_width ≠ 145, the mean average width of the car part does not equal 145
+* Bootstrap
+
+## 1.3 Hypothesis Testing - Interpreting the results
+
+### Question 1.
+
+Coffee shop problem. Significance level: 0.05, calculated p-value: 0.07
+
+Fail to reject H0, based on our sample, we do not have enough evidence that the proportion is statistically significantly different from, less than or greater than the null value.
+
+### Question 2.
+
+Website company problem. Significance level: 0.01, p-value: 0.006
+
+We reject H0 in favour of Ha and conclude that we have found enough evidence in our data to suggest that the proportion of clicks from the top banner is statistically significantly greater than the proportion of clicks from the right banner.
+
+### Question 3.
+
+Manufacturing company problem. Significance level: 0.05, p-value: 0.55
+
+We fail to reject H0, there is not enough evidence that the mean width is statistically significantly different from 145mm
