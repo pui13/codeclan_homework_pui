@@ -1,0 +1,115 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(tidyverse)
+library(janitor)
+library(lubridate)
+library(leaps)
+library(glmulti)
+library(relaimpo)
+```
+
+```{r}
+avocado <- read_csv("data/avocado.csv") %>%
+  clean_names()
+```
+
+```{r}
+glimpse(avocado)
+```
+
+```{r}
+avo_clean <- avocado %>%
+  mutate(quarter = as.factor(quarter(date)),
+         year = as.factor(year)) %>%
+  select(-c(x1, date, region))
+```
+
+
+```{r}
+glimpse(avo_clean)
+summary(avo_clean)
+```
+
+
+```{r}
+regsubsets_exhaustive <- regsubsets(average_price ~ ., data = avo_clean, nvmax = 15, method = "exhaustive")
+
+sum_regsubsets_exhaustive <- summary(regsubsets_exhaustive)
+
+sum_regsubsets_exhaustive
+```
+
+
+
+
+```{r}
+plot(sum_regsubsets_exhaustive$bic, type = "b")
+plot(sum_regsubsets_exhaustive$rsq, type = "b")
+```
+```{r}
+summary(regsubsets_exhaustive)$which[6,]
+```
+
+```{r}
+mod1 <- lm(average_price ~ x4046 + x4225 + type + year + quarter, data = avo_clean)
+
+summary(mod1)
+```
+
+```{r}
+
+glmulti_fit <- glmulti(
+  average_price ~ ., 
+  data = avo_clean,
+  level = 2, # 2 = include pairwise interactions, 1 = main effects only (main effect = no pairwise interactions)
+  minsize = 0, # no min size of model
+  maxsize = -1, # -1 = no max size of model
+  marginality = TRUE, # marginality here means the same as 'strongly hierarchical' interactions, i.e. include pairwise interactions only if both predictors present in the model as main effects.
+  method = "g", # the problem is too large for exhaustive search, so search using a genetic algorithm
+  crit = bic, # criteria for model selection is BIC value (lower is better)
+  plotty = FALSE, # don't plot models as function runs
+  report = TRUE, # do produce reports as function runs
+  confsetsize = 100, # return best 100 solutions
+  fitfunction = lm # fit using the `lm` function
+)
+```
+
+```{r}
+mod2 <- lm(average_price~1+year+quarter+total_volume+x4046+x4225+x4770+total_bags+small_bags+large_bags+x_large_bags+type+quarter:year+x4225:x4046+total_bags:total_volume+small_bags:total_volume+small_bags:x4225+large_bags:total_volume+large_bags:small_bags+x_large_bags:total_bags+x_large_bags:small_bags+type:x4046+type:x4225+type:x4770+type:large_bags+type:x_large_bags+year:x4225+year:total_bags+year:small_bags+year:large_bags+year:x_large_bags+year:type, data = avo_clean)
+summary(mod2)
+```
+
+```{r}
+par(mfrow = c(2, 2))
+plot(mod2)
+```
+
+```{r}
+summary(glmulti_fit)
+```
+
+```{r}
+glmulti_fit <- glmulti(
+  average_price ~ ., 
+  data = avo_clean,
+  level = 1, # 2 = include pairwise interactions, 1 = main effects only (main effect = no pairwise interactions)
+  minsize = 1, # no min size of model
+  maxsize = -1, # -1 = no max size of model
+  marginality = TRUE, # marginality here means the same as 'strongly hierarchical' interactions, i.e. include pairwise interactions only if both predictors present in the model as main effects.
+  method = "h", # try exhaustive search, or could use "g" for genetic algorithm instead
+  crit = bic, # criteria for model selection is BIC value (lower is better)
+  plotty = FALSE, # don't plot models as function runs
+  report = TRUE, # do produce reports as function runs
+  confsetsize = 10, # return best 10 solutions
+  fitfunction = lm # fit using the `lm` function
+)
+```
+
+```{r}
+summary(glmulti_fit)
+```
+

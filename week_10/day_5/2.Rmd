@@ -1,0 +1,60 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+library(GGally)
+library(ggfortify)
+library(modelr)
+```
+
+ 
+```{r}
+avo_clean %>%
+  ggpairs(aes())
+```
+
+```{r}
+mod1a <- lm(average_price ~ x4046, data = avo_clean)
+autoplot(mod1a)
+summary(mod1a)
+```
+
+```{r}
+mod1b <- lm(average_price ~ log(total_volume), data = avo_clean)
+autoplot(mod1b)
+summary(mod1b)
+```
+
+```{r}
+mod1c <- lm(average_price ~ type, data = avo_clean)
+autoplot(mod1c)
+summary(mod1c)
+```
+
+type has best R-squared value so will use that
+
+
+```{r}
+avo_resid <- avo_clean %>%
+  add_residuals(mod1c) %>%
+  dplyr::select(-c("average_price", "type"))
+
+avo_resid %>%
+  ggpairs()
+
+```
+
+```{r}
+mod2a <- lm(average_price ~ type + x4046, data = avo_clean)
+summary(mod2a)
+autoplot(mod2a)
+```
+
+```{r}
+mod2b <- lm(average_price ~ type + large_bags, data = avo_clean)
+summary(mod2b)
+autoplot(mod2b)
+```
+
