@@ -1,0 +1,139 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+
+```{r}
+library(rpart)
+library(rpart.plot)
+library(tidyverse)
+
+library(tidyverse)
+titanic_set <- read_csv('data/titanic_decision_tree_data.csv')
+
+shuffle_index <- sample(1:nrow(titanic_set))
+
+# shuffle the data so class order isn't in order - need this for training/testing split later on 
+titanic_set <- titanic_set[shuffle_index, ]
+```
+```{r}
+glimpse(titanic_set)
+```
+
+```{r}
+titanic_clean <- titanic_set %>%
+  mutate(sex = as.factor(sex),
+         survived = factor(survived, levels = c(0,1), labels = c("No", "Yes")),
+         class = factor(pclass, levels = c(3,2,1), labels = c("Lower", "Middle", "Upper")),
+         embarked = as.factor(embarked),
+         age_status = as.factor(if_else(age < 17, "child", "adult"))) %>%
+    select(-c(...1, passenger_id, name, ticket, fare, cabin, age, pclass)) %>%
+    na.omit()
+  
+```
+
+```{r}
+glimpse(titanic_clean)
+```
+
+
+## Looking at data and creating some plots to know what I'm working with
+
+```{r}
+library(GGally)
+
+ggpairs(titanic_clean)
+```
+
+```{r}
+titanic_clean %>%
+  select(survived, sex, class, age_status) %>%
+  ggpairs()
+```
+
+The variables selected in the second set of `ggpairs` plots are the ones I think are most useful to predict whether people survive or not
+
+## Create testing and training sets
+
+```{r}
+n_data <- nrow(titanic_clean)
+
+test_index <- sample(1:n_data, size = n_data*0.2)
+
+titanic_test  <- slice(titanic_clean, test_index)
+
+titanic_train <- slice(titanic_clean, -test_index)
+```
+
+
+Chose a 80/20 training/testing split as I'm not sure a 10% test set will have enough data to accurately measure the model performance
+
+```{r}
+titanic_test %>%
+  janitor::tabyl(survived)
+
+titanic_train %>%
+  janitor::tabyl(survived)
+```
+
+
+
+## Create decision tree to try and predict survival probability using an appropriate method, and create a decision tree plot.
+
+```{r}
+titanic_fit <- rpart(
+  formula = survived ~.,
+  data = titanic_train,
+  method = "class"
+)
+
+rpart.plot(titanic_fit,
+           yesno = 2,
+           fallen.leaves = TRUE, 
+           faclen = 6, 
+           digits = 4,
+           type = 4)
+```
+```{r}
+rpart.plot(titanic_fit,
+           yesno = 2,
+           fallen.leaves = TRUE, 
+           faclen = 6, 
+           digits = 4,
+           type = 4,
+           extra = 101)
+```
+
+The most important variable is the sex followed by class.
+For each node: 
+
+ * the first line tells you whether they're predicted to survive or not
+ * second line is the probabilty of survival (first plot)
+ * second line is a breakdown of deaths, number on left, and survivors, number on right (second plot)
+ * third line is the percentage of the data that passes through the node
+
+Females who are not in Lower Class has the most chance of survival whereas adult males in Lower or Middle class have the least chance of survival.
+
+## Test and add predictions to data
+
+```{r}
+library(modelr)
+```
+
+```{r}
+titanic_test_pred <- titanic_test %>%
+  add_predictions(titanic_fit, type = "class")
+```
+
+```{r}
+library(caret)
+confusionMatrix(titanic_test_pred$pred, titanic_test_pred$survived)
+```
+
+The model created was 81% accurate in predicting whether a passenger survived in the test set.
+The sensitivity of the model (true positive rate) is 0.93 and the specificity (true negative rate) is 0.62

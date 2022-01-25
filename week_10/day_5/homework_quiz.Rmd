@@ -1,0 +1,61 @@
+---
+title: "Homework Quiz"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    df_print: paged
+    css: ../../../styles.css
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<br><br>
+
+1. I want to predict how well 6 year-olds are going to do in their final school exams. Using the following variables am I likely under-fitting, fitting well or over-fitting? Postcode, gender, reading level, score in maths test, date of birth, family income.
+
+Most likely over-fitting
+
+
+
+2. If I have two models, one with an AIC score of 34,902 and the other with an AIC score of 33,559 which model should I use?
+
+The model with the lower AIC score, which is 33,559
+
+
+
+3. I have two models, the first with: r-squared: 0.44, adjusted r-squared: 0.43. The second with: r-squared: 0.47, adjusted r-squared: 0.41. Which one should I use?
+
+The first model as the adjusted r-squared is higher
+
+
+4. I have a model with the following errors: RMSE error on test set: 10.3, RMSE error on training data: 10.4. Do you think this model is over-fitting?
+
+No, errors are pretty similar
+
+
+5. How does k-fold validation work?
+
+Split the data into parts, 10 is a normal value to split into. One of the split part is then used as the test model and the rest as training. Process is repeated until each part has been selected as a test. Once the process is completed the average error is taken from all test folds.
+
+
+6. What is a validation set? When do you need one?
+
+It is a final set of data used to test the accuracy of the model. Commonly used when fitting model that have hyperparameters
+
+
+7. Describe how backwards selection works.
+
+Start with all the variables and you eliminate one by one until you find the best fit
+
+
+8. Describe how best subset selection works.
+
+
+Uses every single variable combination and finds the best model
+
+
